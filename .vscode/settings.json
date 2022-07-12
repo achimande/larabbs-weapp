@@ -1,0 +1,39 @@
+{
+    // vetur 配置
+    "vetur.validation.template": false,
+    "editor.defaultFormatter": "hu2ren.vetur-wepy",
+    // 使用 VSCode 自带程序格式化 JS 文件
+    "vetur.format.defaultFormatter.js": "prettier",
+    // 使用 js-beautify-html 格式 HTML 模板
+    "vetur.format.defaultFormatter.html": "js-beautify-html",
+    "vetur.format.scriptInitialIndent": true,
+    "vetur.format.styleInitialIndent": true,
+    // 格式 HTML 模板
+    "vetur.format.defaultFormatterOptions": {
+        "js-beautify-html": {
+            // tag 属性对齐
+            "wrap_attributes": "force-aligned"
+        }
+    },
+    "editor.formatOnSave": true,
+    "vetur.format.options.tabSize": 4,
+    // 文件关联
+    "files.associations": {
+        // wepy 框架关联
+        "*.wpy": "vue",
+        "*.vue": "vue",
+        "*.wxss": "css",
+        "*.wxs": "javascript"
+    },
+    // 禁用 less 自动编译
+    "less.compile": {
+        "out": false
+    },
+    "editor.codeActionsOnSave": {
+        "source.fixAll": true,
+        "source.fixAll.stylelint": true
+    },
+    "[vue]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+}
