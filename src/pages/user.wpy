@@ -1,10 +1,33 @@
-<style>
-</style>
+<style></style>
 <template>
-    <view class="container"> 我的页面 </view>
+    <div class="page">
+        <div class="page__bd">
+            <div class="weui-panel weui-panel_access">
+                <div class="weui-panel__he" v-if="loggedIn">已登录</div>
+                <div v-else>
+                    <a url="/pages/auth/login" class="weui-cell weui-cell_access">
+                        <div class="weui-cell__bd">未登录</div>
+                        <div class="weui-cell_access weui-cell__ft"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
-    import wepy from '@wepy/core'
-    wepy.page({})
+import wepy from '@wepy/core'
+wepy.page({
+    config: {
+        navigationBarTitleText: '我的'
+    },
+    data: {
+        loggedIn: false
+    },
+    onShow() {
+        if (wx.getStorageSync('access_token')) {
+            this.loggedIn = true
+        }
+    }
+})
 </script>
