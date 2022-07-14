@@ -5,7 +5,7 @@
                 <div class="weui-toptips weui-toptips_warn fadeIn" v-if="errorMessage">{{ errorMessage }}</div>
                 <div class="weui-cells__title">Larabbs 用户登录</div>
                 <div class="weui-cells weui-cells_after-title">
-                    <div class="weui-cell weui-cell_input" :class="{ 'weui-cell_warn': hasError }">
+                    <div class="weui-cell weui-cell_input" :class="{ 'weui-cell_warn': errors.username }">
                         <div class="weui-cell__hd">
                             <div class="weui-label">用户名</div>
                         </div>
@@ -16,7 +16,7 @@
                             <icon type="warn" size="23" color="#e64340"></icon>
                         </div>
                     </div>
-                    <div class="weui-cell weui-cell_input" :class="{ 'weui-cell_warn': hasError }">
+                    <div class="weui-cell weui-cell_input" :class="{ 'weui-cell_warn': errors.password }">
                         <div class="weui-cell__hd">
                             <div class="weui-label">密码</div>
                         </div>
@@ -28,6 +28,10 @@
                         </div>
                     </div>
                 </div>
+                <div class="weui-cells__tips">
+                    如果你还没有 Larabbs 用户可以
+                    <a url="/pages/auth/register">注册新用户</a>
+                </div>
                 <div class="weui-btn-area">
                     <button class="weui-btn" type="primary" @tap="submit">登录</button>
                 </div>
@@ -35,60 +39,60 @@
         </div>
     </div>
 </template>
-<config>
-{
-    navigationBarTitleText:'登录',
-}
-</config>
 
 <script>
 import wepy from '@wepy/core'
-import { login } from '@/api/auth'
+import WeValidator from 'we-validator'
+import store from '@/store'
 wepy.page({
+    store,
+    config: {
+        navigationBarTitleText: '登录'
+    },
     data: {
         form: {},
-        hasError: false,
+        errors: {},
         errorMessage: ''
     },
+    onReady() {
+        this.initValidator()
+    },
     methods: {
+        initValidator() {
+            this.validatorInstance = new WeValidator({
+                rules: {
+                    username: { required: true },
+                    password: { required: true, minlength: 6 }
+                },
+                messages: {
+                    username: { required: '请输入用户名' },
+                    password: {
+                        required: '请填写密码',
+                        minlength: '密码最少 6 位数'
+                    }
+                },
+                onMessage: (data) => {
+                    this.$set(this.errors, data.name, [data.msg])
+                    this.errorMessage = data.msg
+                }
+            })
+        },
         async submit() {
-            this.hasError = false
-            this.errorMessage = ''
-            if (!this.form.username || !this.form.password) {
-                this.hasError = true
-                this.errorMessage = '请填写账号名和密码'
+            this.errors = {}
+            if (!this.validatorInstance.checkData(this.form)) {
                 return
             }
-
-            let params = this.form
-            console.log(params)
-            const loginData = await wx.login()
-            params.code = loginData.code
             try {
-                const loginResponse = await login(params)
-                const accessToken = loginResponse.data.access_token
-                const accessTokenExpiredAt = new Date().getTime() + 3600 * 24 * 7 * 1000
-
-                wx.setStorageSync('access_token', accessToken)
-                wx.setStorageSync('access_token_expired_at', accessTokenExpiredAt)
+                await this.$store.dispatch('login', this.form)
                 wx.navigateBack()
             } catch (err) {
-                this.hasError = true
                 this.errorMessage = err.response.data.message
             }
         }
     },
     async onShow() {
         try {
-            const loginData = await wx.login()
-            const loginResponse = await login({
-                code: loginData.code
-            })
-            const accessToken = loginResponse.data.access_token
-            const accessTokenExpiredAt = new Date().getTime() + 3600 * 24 * 7 * 1000
-
-            wx.setStorageSync('access_token', accessToken)
-            wx.setStorageSync('access_token_expired_at', accessTokenExpiredAt)
+            await this.$store.dispatch('login')
             wx.navigateBack()
         } catch (err) {}
     }

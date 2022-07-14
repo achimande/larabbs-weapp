@@ -1,5 +1,5 @@
 import wepy from '@wepy/core'
-
+import store from '@/store'
 const host = 'http://larabbs.test/api/v1/'
 const request = async (url, options = {}, showLoading = true) => {
     if (showLoading) {
@@ -27,10 +27,37 @@ const request = async (url, options = {}, showLoading = true) => {
             content: '服务器错误，请联系管理员或重试'
         })
     }
-
+    console.log(response)
     const error = new Error(response.data.message)
     error.response = response
+    console.log(error.response)
     return Promise.reject(error)
 }
 
-export { request }
+const checkToken = async () => {
+    // 从缓存中取出 Token
+    const accessToken = store.getters.accessToken
+    const expiredAt = store.getters.accessTokenExpiredAt
+
+    // 如果 token 过期了，则调用刷新方法
+    if (accessToken && new Date().getTime() > expiredAt) {
+        try {
+            return store.dispatch('refresh')
+        } catch (err) {
+            return store.dispatch('login')
+        }
+    }
+}
+
+// 普通请求
+const authRequest = async (url, options = {}, showLoading = true) => {
+    await checkToken()
+
+    options.header = {
+        Authorization: 'Bearer ' + store.getters.accessToken
+    }
+
+    return await request(url, options, showLoading)
+}
+
+export { request, authRequest }
