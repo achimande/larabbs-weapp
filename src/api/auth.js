@@ -23,3 +23,29 @@ export function logout(token) {
         }
     })
 }
+
+export function getCaptcha(phone) {
+    return request('captchas', {
+        method: 'post',
+        data: {
+            phone: phone
+        }
+    })
+}
+
+export function getVerificationCode(key, code) {
+    return request('verificationCodes', {
+        method: 'post',
+        data: {
+            captcha_key: key,
+            captcha_code: code
+        }
+    })
+}
+
+export function register(data) {
+    return request('weapp/users', {
+        method: 'post',
+        data: data
+    })
+}
