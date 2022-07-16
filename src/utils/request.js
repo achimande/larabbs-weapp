@@ -1,6 +1,6 @@
 import wepy from '@wepy/core'
 import store from '@/store'
-const host = 'http://192.168.1.5:9443/api/v1/'
+const host = 'http://larabbs.test/api/v1/'
 const request = async (url, options = {}, showLoading = true) => {
     if (showLoading) {
         wx.showLoading({ title: '加载中' })
