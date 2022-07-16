@@ -2,7 +2,7 @@
     <div class="page">
         <div class="page__bd">
             <div class="weui-panel weui-panel_access">
-                <div class="weui-panel__hd">话题列表1</div>
+                <div class="weui-panel__hd">话题列表...</div>
             </div>
             <div class="weui-panel__hd">
                 <div v-for="topic in topics">
@@ -30,22 +30,22 @@ wepy.page({
             {
                 id: 1,
                 title: '测试1',
-                body: 'larabbs 测试内容1'
+                body: '小小乖 大娃'
             },
             {
                 id: 2,
                 title: '测试2',
-                body: 'larabbs 测试内容2'
+                body: '小小乖 二娃'
             },
             {
                 id: 3,
                 title: '测试3',
-                body: 'larabbs 测试内容3'
+                body: '小小乖 三娃'
             },
             {
                 id: 4,
                 title: '测试4',
-                body: 'larabbs 测试内容4'
+                body: '小小乖 四娃'
             }
         ]
     }

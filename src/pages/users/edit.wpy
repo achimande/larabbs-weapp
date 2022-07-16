@@ -1,6 +1,29 @@
+<style lang="less">
+.introduction {
+    height: 3.3em;
+}
+.error-message {
+    color: #e64340;
+}
+.avatar {
+    width: 80px;
+    height: 80px;
+    display: block;
+    border-radius: 50%;
+}
+.avatar-wrap {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+</style>
 <template>
     <div class="page">
         <div class="page__bd">
+            <div class="avatar-wrap">
+                <image class="avatar" :src="form.avatar" @tap="uploadAvatar" />
+            </div>
             <!-- 填写姓名 -->
             <div class="weui-cells__title" :class="{ 'weui-cell_warn': errors.name }">姓名</div>
             <div class="weui-cells weui-cells_after-title">
@@ -57,6 +80,7 @@ import wepy from '@wepy/core'
 import store from '@/store'
 import { mapGetters } from 'vuex'
 import WeValidator from 'we-validator'
+import { updateAvatar } from '@/api/user'
 
 wepy.page({
     store,
@@ -124,16 +148,19 @@ wepy.page({
                     this.errors = err.response.data.errors
                 }
             }
+        },
+        async uploadAvatar() {
+            let image = await wepy.wx.chooseImage({ count: 1 })
+            try {
+                let avatar = image.tempFilePaths[0]
+                let imageResponse = await updateAvatar(avatar)
+                let responseData = JSON.parse(imageResponse.data)
+                this.form = Object.assign({}, this.form, {
+                    avatar: responseData.path,
+                    avatar_image_id: responseData.id
+                })
+            } catch (err) {}
         }
     }
 })
 </script>
-
-<style lang="less">
-.introduction {
-    height: 3.3em;
-}
-.error-message {
-    color: #e64340;
-}
-</style>

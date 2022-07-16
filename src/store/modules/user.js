@@ -54,6 +54,7 @@ const actions = {
     },
     async logout({ commit, state }) {
         await logout(state.accessToken)
+        console.log('has logout')
         auth.logout()
         commit('resetState')
     }

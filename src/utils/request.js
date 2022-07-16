@@ -1,6 +1,6 @@
 import wepy from '@wepy/core'
 import store from '@/store'
-const host = 'http://larabbs.test/api/v1/'
+const host = 'http://192.168.1.5:9443/api/v1/'
 const request = async (url, options = {}, showLoading = true) => {
     if (showLoading) {
         wx.showLoading({ title: '加载中' })
@@ -60,4 +60,36 @@ const authRequest = async (url, options = {}, showLoading = true) => {
     return await request(url, options, showLoading)
 }
 
-export { request, authRequest }
+const uploadFile = async (url, options = {}, showLoading = true) => {
+    // 显示加载
+    if (showLoading) {
+        wx.showLoading({ title: '上传中' })
+    }
+
+    options.url = host + url
+
+    checkToken()
+    options.header = {
+        Authorization: 'Bearer ' + store.getters.accessToken
+    }
+
+    let response = await wepy.wx.uploadFile(options)
+    if (showLoading) {
+        wx.hideLoading()
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+        return response
+    }
+
+    wx.showModal({
+        title: '提示',
+        content: '服务器错误，请联系管理员重试'
+    })
+
+    const error = new Error(response.data.message)
+    error.response = response
+    return Promise.reject(error)
+}
+
+export { request, authRequest, uploadFile }
