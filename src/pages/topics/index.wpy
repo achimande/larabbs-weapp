@@ -52,7 +52,11 @@
         </div>
     </div>
 </template>
-
+<config>
+{
+    enablePullDownRefresh: true
+}
+</config>
 <script>
 import wepy from '@wepy/core'
 import { getTopics } from '@/api/topic'
@@ -64,9 +68,6 @@ wepy.page({
         noMoreData: false,
         isLoading: false
     },
-    config: {
-        enablePullDownRefresh: true
-    },
     async onLoad() {
         this.loadTopics()
     },
@@ -77,7 +78,7 @@ wepy.page({
         wx.stopPullDownRefresh()
     },
     async onReachBottom() {
-        if (this.noMoreData) {
+        if (this.noMoreData || this.isLoading) {
             return
         }
         this.isLoading = true
