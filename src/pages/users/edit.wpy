@@ -74,7 +74,11 @@
         </div>
     </div>
 </template>
-
+<config>
+{
+    navigationBarTitleText:'修改个人信息'
+}
+</config>
 <script>
 import wepy from '@wepy/core'
 import store from '@/store'
@@ -84,9 +88,6 @@ import { updateAvatar } from '@/api/user'
 
 wepy.page({
     store,
-    config: {
-        navigationBarTitleText: '修改个人信息'
-    },
     data: {
         form: {},
         errors: {}

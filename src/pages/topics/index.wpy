@@ -6,7 +6,7 @@
 .topic-info {
     margin-top: 5px;
 }
-.topics-title {
+.topic-title {
     white-space: normal;
     font-size: 14px;
 }
@@ -21,7 +21,8 @@
     background-color: #d8d8d8;
     float: right;
 }
-// 分类
+
+/*分类*/
 .weui-flex {
     align-items: center;
 }
@@ -58,6 +59,7 @@
     width: 30px;
     height: 30px;
 }
+
 .category-list__item-hd {
     padding: 20px;
     transition: opacity 0.3s;
@@ -73,7 +75,6 @@
     }
 }
 </style>
-
 <template>
     <div class="page">
         <div class="page__bd">
@@ -84,29 +85,31 @@
                 </div>
                 <div class="category-list__item-bd" :class="{ 'category-list__item-bd_show': categoryOpen }">
                     <div class="weui-cells" :class="{ 'weui-cells_show': categoryOpen }">
-                        <div class="weui-cell weui-cell_access" :class="{ 'category-list__item_selected': !currentCategoryId }" @tap="changeCategory">
+                        <div @tap="changeCategory" class="weui-cell weui-cell_access" :class="{ 'category-list__item_selected': !currentCategoryId }">
                             <div class="weui-cell__bd">话题</div>
                         </div>
                         <div v-for="category in categories" :key="category.id">
-                            <div class="weui-cell weui-cell_access" :class="{ 'category-list__item_selected': currentCategoryId == category.id }" @tap="changeCategory(category)">
+                            <div @tap="changeCategory(category)" class="weui-cell weui-cell_access" :class="{ 'category-list__item_selected': currentCategoryId == category.id }">
                                 <div class="weui-cell__bd">{{ category.name }}</div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
             <div class="weui-panel weui-panel_access">
                 <div class="weui-panel__bd">
-                    <div v-for="topic in topics" :key="topics.id">
-                        <a url="" class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
+                    <div v-for="topic in topics" :key="topic.id">
+                        <a url="/pages/topics/show?id={{ topic.id }}" class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
                             <div class="weui-media-box__hd weui-media-box__hd_in-appmsg">
                                 <image class="avatar" :src="topic.user.avatar" />
                             </div>
                             <div class="weui-media-box__bd weui-media-box__bd_in-appmsg">
                                 <div class="weui-media-box__title topic-title">{{ topic.title }}</div>
+
                                 <div class="weui-media-box__info topic-info">
-                                    <div class="weui-media-box__info__meta">{{ topic.category.name }}</div>
-                                    <div class="weui-media-box__info__meta">{{ topic.user.name }}</div>
+                                    <div class="weui-media-box__info__meta">{{ topic.category.name }} •</div>
+                                    <div class="weui-media-box__info__meta">{{ topic.user.name }} •</div>
                                     <div class="weui-media-box__info__meta">
                                         <datetime-diff :datetime="topic.updated_at"></datetime-diff>
                                     </div>
@@ -124,12 +127,12 @@
     </div>
 </template>
 <config>
-{
+  {
     enablePullDownRefresh: true,
     usingComponents: {
-        'datetime-diff': '~@/components/datetime-diff'
+      "datetime-diff": "~@/components/datetime-diff"
     }
-}
+  }
 </config>
 <script>
 import wepy from '@wepy/core'
@@ -137,13 +140,20 @@ import { getTopics, getCategories } from '@/api/topic'
 
 wepy.page({
     data: {
-        topics: [],
+        // 分类数据
         categories: [],
-        page: 1,
-        noMoreData: false,
-        isLoading: false,
+        // 当前的分类
+        currentCategory: {},
+        // 是否显示分类
         categoryOpen: false,
-        currentCategory: {}
+        // 话题数据
+        topics: [],
+        // 当前分页
+        page: 1,
+        // 是否还有更多数据
+        noMoreData: false,
+        // 是否在加载中
+        isLoading: false
     },
     computed: {
         currentCategoryId() {
@@ -164,32 +174,55 @@ wepy.page({
         wx.stopPullDownRefresh()
     },
     async onReachBottom() {
+        // 如果没有更多内容，直接返回
         if (this.noMoreData || this.isLoading) {
             return
         }
+
         this.isLoading = true
         this.page += 1
+
         await this.loadTopics()
+
         this.isLoading = false
     },
     methods: {
+        // 获取话题数据
         async loadTopics(reset = false) {
             let params = {
                 page: this.page,
                 include: 'user,category'
             }
+
             if (this.currentCategoryId) {
                 params['filter[category_id]'] = this.currentCategoryId
             }
 
+            // 请求话题列表接口
             const topicsResponse = await getTopics(params)
+
+            // 将数据合并到 this.topics
             this.topics = reset ? topicsResponse.data.data : this.topics.concat(topicsResponse.data.data)
+
             const pagination = topicsResponse.data.meta
 
             // 根据分页设置是否还有更多数据
-            if (pagination.current_page == pagination.last_page) {
+            if (pagination.current_page === pagination.last_page) {
                 this.noMoreData = true
             }
+        },
+        async loadCategories() {
+            // 从缓存中获取分类数据
+            let categories = wx.getStorageSync('categories')
+
+            if (!categories) {
+                const categoriesResponse = await getCategories()
+                categories = categoriesResponse.data.data
+
+                wx.setStorageSync('categories', categories)
+            }
+
+            this.categories = categories
         },
         categorisToggle() {
             this.categoryOpen = !this.categoryOpen
@@ -198,17 +231,9 @@ wepy.page({
             this.currentCategory = category
             this.categoryOpen = false
             this.page = 1
+            this.noMoreData = false
+            // 调用组件的 reload 方法
             this.loadTopics(true)
-        },
-        async loadCategories() {
-            //从缓存中获取分类数据
-            let categories = wx.getStorageSync('categories')
-            if (!categories) {
-                const categoriesResponse = await getCategories()
-                categories = categoriesResponse.data.data
-                wx.setStorageSync('categproes', categories)
-            }
-            this.categories = categories
         }
     }
 })
