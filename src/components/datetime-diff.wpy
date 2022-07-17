@@ -1,0 +1,21 @@
+<style lang="less" scoped></style>
+
+<template>
+    <span>{{ formatDateTime }}</span>
+</template>
+
+<script>
+import wepy from '@wepy/core'
+import { diffForHumans } from '@/utils/util'
+
+wepy.component({
+    props: {
+        datetime: String
+    },
+    computed: {
+        formatDateTime: function () {
+            return diffForHumans(this.datetime)
+        }
+    }
+})
+</script>
