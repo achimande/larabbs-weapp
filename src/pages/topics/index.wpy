@@ -21,11 +21,80 @@
     background-color: #d8d8d8;
     float: right;
 }
+// 分类
+.weui-flex {
+    align-items: center;
+}
+.weui-cells {
+    margin-top: 0;
+    opacity: 0;
+    transition: 0.3s;
+    &:before,
+    &:after {
+        display: none;
+    }
+    &_show {
+        opacity: 1;
+    }
+}
+.weui-cell {
+    &:before {
+        right: 15px;
+    }
+}
+.category-list__item {
+    margin: 10px 0;
+    background-color: #ffffff;
+    border-radius: 2px;
+    overflow: hidden;
+    &:first-child {
+        margin-top: 0;
+    }
+}
+.category-list__item_selected {
+    background-color: #eeeeee;
+}
+.category-list__img {
+    width: 30px;
+    height: 30px;
+}
+.category-list__item-hd {
+    padding: 20px;
+    transition: opacity 0.3s;
+    &_show {
+        opacity: 0.4;
+    }
+}
+.category-list__item-bd {
+    height: 0;
+    overflow: hidden;
+    &_show {
+        height: auto;
+    }
+}
 </style>
 
 <template>
     <div class="page">
         <div class="page__bd">
+            <div class="category-list__item">
+                <div class="weui-flex category-list__item-hd" @tap="categorisToggle">
+                    <div class="weui-flex__item page-title">{{ currentCategoryName }}</div>
+                    <image class="category-list__img" src="/assets/images/category.png" />
+                </div>
+                <div class="category-list__item-bd" :class="{ 'category-list__item-bd_show': categoryOpen }">
+                    <div class="weui-cells" :class="{ 'weui-cells_show': categoryOpen }">
+                        <div class="weui-cell weui-cell_access" :class="{ 'category-list__item_selected': !currentCategoryId }" @tap="changeCategory">
+                            <div class="weui-cell__bd">话题</div>
+                        </div>
+                        <div v-for="category in categories" :key="category.id">
+                            <div class="weui-cell weui-cell_access" :class="{ 'category-list__item_selected': currentCategoryId == category.id }" @tap="changeCategory(category)">
+                                <div class="weui-cell__bd">{{ category.name }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="weui-panel weui-panel_access">
                 <div class="weui-panel__bd">
                     <div v-for="topic in topics" :key="topics.id">
@@ -64,17 +133,29 @@
 </config>
 <script>
 import wepy from '@wepy/core'
-import { getTopics } from '@/api/topic'
+import { getTopics, getCategories } from '@/api/topic'
 
 wepy.page({
     data: {
         topics: [],
+        categories: [],
         page: 1,
         noMoreData: false,
-        isLoading: false
+        isLoading: false,
+        categoryOpen: false,
+        currentCategory: {}
+    },
+    computed: {
+        currentCategoryId() {
+            return this.currentCategory.id || null
+        },
+        currentCategoryName() {
+            return this.currentCategory.name || '话题'
+        }
     },
     async onLoad() {
         this.loadTopics()
+        this.loadCategories()
     },
     async onPullDownRefresh() {
         this.page = 1
@@ -93,13 +174,15 @@ wepy.page({
     },
     methods: {
         async loadTopics(reset = false) {
-            if (reset) {
-                this.page = 1
-            }
-            const topicsResponse = await getTopics({
+            let params = {
                 page: this.page,
                 include: 'user,category'
-            })
+            }
+            if (this.currentCategoryId) {
+                params['filter[category_id]'] = this.currentCategoryId
+            }
+
+            const topicsResponse = await getTopics(params)
             this.topics = reset ? topicsResponse.data.data : this.topics.concat(topicsResponse.data.data)
             const pagination = topicsResponse.data.meta
 
@@ -107,6 +190,25 @@ wepy.page({
             if (pagination.current_page == pagination.last_page) {
                 this.noMoreData = true
             }
+        },
+        categorisToggle() {
+            this.categoryOpen = !this.categoryOpen
+        },
+        async changeCategory(category = {}) {
+            this.currentCategory = category
+            this.categoryOpen = false
+            this.page = 1
+            this.loadTopics(true)
+        },
+        async loadCategories() {
+            //从缓存中获取分类数据
+            let categories = wx.getStorageSync('categories')
+            if (!categories) {
+                const categoriesResponse = await getCategories()
+                categories = categoriesResponse.data.data
+                wx.setStorageSync('categproes', categories)
+            }
+            this.categories = categories
         }
     }
 })
