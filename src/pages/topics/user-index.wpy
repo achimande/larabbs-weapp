@@ -1,6 +1,6 @@
 <template>
     <div class="page__bd">
-        <topic-list :topics="topics" :no-more-data="noMoreData"></topic-list>
+        <topic-list :topics="resourceData" :no-more-data="noMoreData"></topic-list>
     </div>
 </template>
 <config>
@@ -15,45 +15,22 @@
 <script>
 import wepy from '@wepy/core'
 import { getUserTopics } from '@/api/topic'
+import listRefresh from '@/mixins/list-refresh.js'
 wepy.page({
+    mixins: [listRefresh],
     data: {
-        page: 1,
-        topics: [],
-        noMoreData: false,
-        isLoading: false,
         userId: 0
     },
     async onLoad(options) {
         this.userId = options.id
-        this.loadTopics()
-    },
-    async onPullDownRefresh() {
-        this.page = 1
-        this.noMoreData = false
-        await this.loadTopics(true)
-        wx.stopPullDownRefresh()
-    },
-    async onReachBottom() {
-        if (this.noMoreData || this.isLoading) {
-            return
-        }
-        this.isLoading = true
-        this.page += 1
-        await this.loadTopics()
-        this.isLoading = false
+        this.loadData()
     },
     methods: {
-        async loadTopics(reset = false) {
-            const topicsResponse = await getUserTopics(this.userId, {
+        async fetchData() {
+            return getUserTopics(this.userId, {
                 page: this.page,
                 include: 'user,category'
             })
-
-            this.topics = reset ? topicsResponse.data.data : this.topics.concat(topicsResponse.data.data)
-            const pagination = topicsResponse.data.meta
-            if (pagination.current_page === pagination.last_page) {
-                this.noMoreData = true
-            }
         }
     }
 })
