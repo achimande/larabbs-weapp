@@ -15,6 +15,9 @@
 .topic-title {
     padding: 15px;
 }
+.delete-button {
+    margin-top: 15px;
+}
 </style>
 <template>
     <div class="page">
@@ -42,6 +45,7 @@
             </div>
             <div class="weui-article">
                 <rich-text :nodes="topic.body"></rich-text>
+                <button v-if="canDelete" @tap="deleteTopic" class="weui-btn weui-btn_mini delete-button" type="default" size="mini">删除</button>
             </div>
         </div>
     </div>
@@ -56,12 +60,24 @@
 </config>
 <script>
 import wepy from '@wepy/core'
-import { getTopic } from '@/api/topic'
-
+import { mapGetters } from '@wepy/x'
+import store from '@/store'
+import { getTopic, deleteTopic } from '@/api/topic'
+import eventHub from '@/common/eventHub'
 wepy.page({
+    store,
     data: {
         // 话题数据
         topic: null
+    },
+    computed: {
+        ...mapGetters(['user', 'isLoggedIn']),
+        canDelete() {
+            if (!this.isLoggedIn || !this.topic) {
+                return false
+            }
+            return this.user.id === this.topic.user_id
+        }
     },
     methods: {
         // 获取话题数据
@@ -71,6 +87,27 @@ wepy.page({
             })
 
             this.topic = topicResponse.data
+        },
+        async deleteTopic() {
+            const res = await wepy.wx.showModal({
+                title: '确认删除',
+                content: '您确认删除该话题吗',
+                confirmText: '删除',
+                cancelText: '取消'
+            })
+            if (!res.confirm) {
+                return
+            }
+            const deleteResponse = await deleteTopic(this.topic.id)
+            wx.showToast({
+                title: '删除成功',
+                icon: 'success'
+            })
+
+            setTimeout(function () {
+                eventHub.$emit('topic-deleted', this.topic)
+                wx.navigateBack()
+            }, 2000)
         }
     },
     onLoad(options) {
