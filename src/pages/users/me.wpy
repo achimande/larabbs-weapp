@@ -32,7 +32,7 @@
                     </div>
                     <div class="weui-cell__ft weui-cell__ft_in-access"></div>
                 </a>
-                <a href="" class="weui-cell weui-cell_access" v-else url="/pages/auth/login">
+                <a class="weui-cell weui-cell_access" v-else url="/pages/auth/login">
                     <div class="weui-cell__hd avatar-wrap">
                         <image src="/assets/images/user.png" class="avatar"></image>
                     </div>
@@ -40,6 +40,15 @@
                         <div>未登录</div>
                     </div>
                     <div class="weui-cell__ft weui-cell_-ft_in-access"></div>
+                </a>
+                <a url="" class="weui-cell weui-cell_access">
+                    <div class="weui-cell__bd" url="">
+                        <div class="weui-cell__bd">
+                            <div style="display: inline-block; vertical-align: middle">我的消息</div>
+                            <div class="weui-badge" style="margin-left: 5px" v-if="unreadCount">{{ unreadCount }}</div>
+                        </div>
+                    </div>
+                    <div class="weui-cell__ft weui-cell__ft_in-access"></div>
                 </a>
                 <a url="{{ isLoggedIn?'/pages/topics/user-index?id='+user.id:''}}" class="weui-cell weui-cell_access">
                     <div class="weui-cell__bd" url="">
@@ -65,13 +74,15 @@
 import wepy from '@wepy/core'
 import store from '@/store'
 import { mapGetters } from '@wepy/x'
+import syncBadge from '@/mixins/sync-badge'
 wepy.page({
     store,
+    mixins: [syncBadge],
     config: {
         navigationBarTitleText: '我的'
     },
     computed: {
-        ...mapGetters(['isLoggedIn', 'user'])
+        ...mapGetters(['isLoggedIn', 'user', 'unreadCount'])
     },
     methods: {
         async logout() {
