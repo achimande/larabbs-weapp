@@ -1,0 +1,43 @@
+<template>
+    <div class="page__bd">
+        <reply-list :replies="resourceData" :no-more-data="noMoreData"></reply-list>
+    </div>
+</template>
+<config>
+{
+    navigationBarTitleText:'用户回复列表',
+    enablePullDownRefresh:true,
+    usingComponents:{
+        "reply-list":"~@/components/reply-list"
+    }
+}
+</config>
+<script>
+import wepy from '@wepy/core'
+import eventHub from '@/common/eventHub'
+import { getUserReplies } from '@/api/reply'
+import listRefresh from '@/mixins/list-refresh.js'
+
+wepy.page({
+    mixins: [listRefresh],
+    data: {
+        userId: 0
+    },
+    async onLoad(options) {
+        this.userId = options.id
+        this.loadData()
+
+        eventHub.$on('reply-deleted', (reply) => {
+            this.resourceData = this.resourceData.filter((r) => r.id !== reply.id)
+        })
+    },
+    methods: {
+        fetchData() {
+            return getUserReplies(this.userId, {
+                page: this.page,
+                include: 'user'
+            })
+        }
+    }
+})
+</script>

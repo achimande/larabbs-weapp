@@ -10,28 +10,8 @@
 </style>
 <template>
     <div class="page__bd">
-        <div class="weui-panel weui-panel_access">
-            <div class="weui-panel__bd"></div>
-        </div>
-        <div class="weui-panel weui-panel_access">
-            <div class="weui-panel__bd">
-                <div v-for="reply in resourceData" :key="reply.id">
-                    <div class="weui-media-box weui-media-box_appmsg" hover-class="weui-cell_active">
-                        <a class="weui-media-box__hd weui-media-box__hd_in-appmsg" url="/pages/users/show?id={{ reply.user_id }}">
-                            <image class="replyer-avatar weui-media-box__thumb" :src="reply.user.avatar" />
-                        </a>
-                        <div class="weui-media-box__bd weui-media-box__bd_in-appmsg">
-                            <div class="weui-media-box__title">{{ reply.user.name }}</div>
-                            <div class="weui-media-box__desc"><rich-text nodes="{{ reply.content }}" bindtap="tap"></rich-text></div>
-                            <div class="weui-media-box__desc"><datetime-diff :datetime="reply.created_at"></datetime-diff></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="weui-loadmore weui-loadmore_line" v-if="noMoreData">
-                    <div class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</div>
-                </div>
-            </div>
-        </div>
+        <reply-list :replies="resourceData" :no-more-data="noMoreData"></reply-list>
+        <reply-create-link :topicId="topicId"></reply-create-link>
     </div>
 </template>
 <config>
@@ -39,7 +19,8 @@
     navigationBarTitleText: '回复列表',
     enablePullDownRefresh: true,
     usingComponents:  { 
-        "datetime-diff":  "~@/components/datetime-diff"  
+        "reply-list":"~@/components/reply-list",
+        "reply-create-link":"~@/components/reply-create-link"
     }
   }
 </config>
@@ -58,6 +39,12 @@ wepy.page({
         // 获取 URL 参数中的 话题id
         this.topicId = options.topic_id
         this.loadData()
+
+        eventHub.$on('reply-created', (...args) => {
+            this.page = 1
+            this.noMoreData = false
+            this.loadData(true)
+        })
     },
     methods: {
         fetchData() {
