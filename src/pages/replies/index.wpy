@@ -28,7 +28,7 @@
 import wepy from '@wepy/core'
 import { getReplies } from '@/api/reply'
 import listRefresh from '@/mixins/list-refresh.js'
-
+import eventHub from '@/common/eventHub'
 wepy.page({
     mixins: [listRefresh],
     data: {
@@ -44,6 +44,10 @@ wepy.page({
             this.page = 1
             this.noMoreData = false
             this.loadData(true)
+        })
+
+        eventHub.$on('reply-deleted', (reply) => {
+            this.resourceData = this.resourceData.filter((r) => r.id !== reply.id)
         })
     },
     methods: {

@@ -15,7 +15,7 @@ const actions = {
         commit('setUnreadCount', statsResponse.data.unread_count)
     },
     async readNotifications({ commit }, params = {}) {
-        const statsResponse = await readNotifications()
+        await readNotifications()
         commit('setUnreadCount', 0)
     }
 }
