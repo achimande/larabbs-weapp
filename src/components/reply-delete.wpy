@@ -31,7 +31,7 @@ wepy.component({
             if (!this.reply || !this.isLoggedIn) {
                 return false
             }
-            return this.user.id === this.reply.user_id
+            return this.user.id === this.reply.user_id || this.$app.can('manage_contents')
         }
     },
     methods: {

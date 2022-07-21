@@ -110,7 +110,7 @@ wepy.page({
             if (!this.isLoggedIn || !this.topic) {
                 return false
             }
-            return this.user.id === this.topic.user_id
+            return this.user.id === this.topic.user_id || this.$app.can('manage_contents')
         }
     },
     methods: {
