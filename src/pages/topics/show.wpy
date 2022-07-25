@@ -104,6 +104,12 @@ wepy.page({
         // 话题数据
         topic: null
     },
+    onShareAppMessage() {
+        return {
+            title: this.topic.title,
+            path: '/pages/topics/show?id=' + this.topic.id
+        }
+    },
     computed: {
         ...mapGetters(['user', 'isLoggedIn']),
         canDelete() {
